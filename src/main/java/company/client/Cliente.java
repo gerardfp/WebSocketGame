@@ -136,7 +136,7 @@ public class Cliente extends JPanel {
     private void procesarMensajeDelServidor(Mensaje mensaje){
         switch (mensaje.tipo){
             case ENTRAR_AL_JUEGO:
-                añadirEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.color);
+                ponerEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.color);
                 break;
             case POSICION:
                 actualizarEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.disparos);
@@ -147,7 +147,7 @@ public class Cliente extends JPanel {
         }
     }
 
-    private void añadirEnemigo(String idEnemigo, Jugador.Posicion posicion, Color color){
+    private void ponerEnemigo(String idEnemigo, Jugador.Posicion posicion, Color color){
         enemigos.put(idEnemigo, new Jugador(posicion, color));
     }
 
