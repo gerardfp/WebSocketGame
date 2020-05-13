@@ -195,7 +195,7 @@ public class Cliente extends JPanel {
             if(sesion == null) return;
 
             try {
-                sesion.getBasicRemote().sendObject(mensaje.setIdDelQueEnvia(sesion.getId()));
+                sesion.getBasicRemote().sendObject(mensaje);
             } catch (Exception e) {}
         }
 
