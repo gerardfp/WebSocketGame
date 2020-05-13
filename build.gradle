@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'WebSocketGame'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    implementation 'com.google.code.gson:gson:2.8.0'
+    implementation 'javax.websocket:javax.websocket-api:1.1'
+    implementation 'org.glassfish.tyrus:tyrus-server:1.1'
+    implementation 'org.glassfish.tyrus:tyrus-client:1.1'
+    implementation 'org.glassfish.tyrus:tyrus-container-grizzly:1.1'
+}
