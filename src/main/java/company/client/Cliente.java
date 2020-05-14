@@ -40,10 +40,10 @@ public class Cliente extends JPanel {
         Button botonDesconectar = new Button("DISCONNECT FROM SERVER");
         etiquetaEstadoConexion = new JLabel("Status");
 
-        botonConectar.addActionListener(e -> clienteEndpoint.conectar());
-        botonDesconectar.addActionListener(e -> clienteEndpoint.close());
-        botonEntrar.addActionListener(e -> clienteEndpoint.enviarMensaje(Mensaje.entrarAlJuego(jugador)));
-        botonSalir.addActionListener(e -> clienteEndpoint.enviarMensaje(Mensaje.exitGame()));
+        botonConectar.addActionListener(e -> conectarAlServidor());
+        botonDesconectar.addActionListener(e -> desconectarDelServidor());
+        botonEntrar.addActionListener(e -> entrarAlJuego());
+        botonSalir.addActionListener(e -> salirDelJuego());
 
         panelDeBotones.setLayout(new BoxLayout(panelDeBotones, BoxLayout.PAGE_AXIS));
         panelDeBotones.add(botonEntrar);
@@ -59,8 +59,8 @@ public class Cliente extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocation((int) jugador.posicion.x+200, (int) jugador.posicion.y+200);
 
-        clienteEndpoint.conectar();
-        clienteEndpoint.enviarMensaje(Mensaje.entrarAlJuego(jugador));
+        conectarAlServidor();
+        entrarAlJuego();
 
         while(true){
             repaint();
@@ -100,7 +100,7 @@ public class Cliente extends JPanel {
     }
 
     private void enviarPosicionAlServidor() {
-        clienteEndpoint.enviarMensaje(Mensaje.posicion(jugador));
+        enviarMensajeAlServidor(Mensaje.posicion(jugador));
     }
 
     private void moverYDisparar() {
@@ -134,12 +134,17 @@ public class Cliente extends JPanel {
     }
 
     private void procesarMensajeDelServidor(Mensaje mensaje){
+        // TODO:
         switch (mensaje.tipo){
             case ENTRAR_AL_JUEGO:
                 ponerEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.color);
+                enviarMensajeAlServidor(Mensaje.estoyJugando(jugador));
                 break;
             case POSICION:
                 actualizarEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.disparos);
+                break;
+            case ESTOY_JUGANDO:
+                ponerEnemigo(mensaje.idDelQueEnvia, mensaje.posicion, mensaje.color);
                 break;
             case SALIR_DEL_JUEGO:
                 quitarEnemigo(mensaje.idDelQueEnvia);
@@ -159,14 +164,36 @@ public class Cliente extends JPanel {
         enemigos.remove(idEnemigo);
     }
 
-    private void onOpenConexionAlServidor(Session sesion){
+    private void cuandoSeAbraLaConexionAlServidor(Session sesion){
         etiquetaEstadoConexion.setText("CONNECTED: " + sesion.getId());
         etiquetaEstadoConexion.paintImmediately(getVisibleRect());
     }
 
-    private void onCloseConexionAlServidor(){
+    private void cuandoSeCierreLaConexionAlServidor(){
         etiquetaEstadoConexion.setText("DISCONNECTED");
         etiquetaEstadoConexion.paintImmediately(getVisibleRect());
+        enemigos.clear();
+    }
+
+    private void enviarMensajeAlServidor(Mensaje mensaje){
+        clienteEndpoint.enviarMensaje(mensaje);
+    }
+
+    private void conectarAlServidor(){
+        clienteEndpoint.conectar();
+    }
+
+    private void desconectarDelServidor(){
+        clienteEndpoint.desconectar();
+    }
+
+    private void entrarAlJuego(){
+        clienteEndpoint.enviarMensaje(Mensaje.entrarAlJuego(jugador));
+    }
+
+    private void salirDelJuego(){
+        clienteEndpoint.enviarMensaje(Mensaje.exitGame());
+        enemigos.clear();
     }
 
 
@@ -181,14 +208,19 @@ public class Cliente extends JPanel {
 
         private void conectar(){
             try{
+                if(conectadoAlServidor()) desconectar();
                 ContainerProvider.getWebSocketContainer().connectToServer(this, new URI("ws://localhost:12345/"));
             }catch(Exception ex){}
         }
 
-        private void close(){
+        private void desconectar(){
             try {
                 sesion.close();
             } catch (Exception e) {}
+        }
+
+        private boolean conectadoAlServidor(){
+            return sesion != null;
         }
 
         private void enviarMensaje(Mensaje mensaje){
@@ -202,7 +234,7 @@ public class Cliente extends JPanel {
         @OnOpen
         public void onOpen(Session session) {
             this.sesion = session;
-            cliente.onOpenConexionAlServidor(session);
+            cliente.cuandoSeAbraLaConexionAlServidor(session);
         }
 
         @OnMessage
@@ -212,7 +244,7 @@ public class Cliente extends JPanel {
 
         @OnClose
         public void onClose(Session session, CloseReason closeReason) {
-            cliente.onCloseConexionAlServidor();
+            cliente.cuandoSeCierreLaConexionAlServidor();
         }
     }
 }

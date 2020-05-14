@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Mensaje {
     public enum Tipo {
-        ENTRAR_AL_JUEGO, SALIR_DEL_JUEGO, POSICION
+        ENTRAR_AL_JUEGO, SALIR_DEL_JUEGO, ESTOY_JUGANDO, POSICION
     }
 
     private static Gson gson = new Gson();
@@ -35,6 +35,15 @@ public class Mensaje {
         mensaje.tipo = Tipo.ENTRAR_AL_JUEGO;
         mensaje.color = jugador.color;
         mensaje.posicion = jugador.posicion;
+        return mensaje;
+    }
+
+    public static Mensaje estoyJugando(Jugador jugador){
+        Mensaje mensaje = new Mensaje();
+        mensaje.tipo = Tipo.ESTOY_JUGANDO;
+        mensaje.color = jugador.color;
+        mensaje.posicion = jugador.posicion;
+        mensaje.disparos = jugador.disparos;
         return mensaje;
     }
 
